@@ -4,7 +4,11 @@ const { Category, Product } = require('../../models');
 // The `/api/categories` endpoint
 
 router.get('/', (req, res) => {
-  Category.findAll()
+  Category.findAll({
+    include: [
+      Product
+    ]}
+  )
     .then(dbCategoryData => res.json(dbCategoryData))
     .catch(err => {
       console.log(err);
@@ -16,29 +20,59 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req, res) => {
   Category.findOne({
+    include: [
+      Product
+    ],
     where: {
       id: req.params.id
     }
   })
+  .then(dbCategoryData => {
+    if (!dbCategoryData) {
+      res.status(404).json({ message: 'No category found with this id' });
+      return;
+    }
+    res.json(dbCategoryData);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json(err);
+  });
   // find one category by its `id` value
   // be sure to include its associated Products
 });
 
 router.post('/', (req, res) => {
   Category.create({
-
+    category_name: req.body.category_name
   })
+  .then(dbCategoryData => res.json(dbCategoryData))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
   // create a new category
 });
 
 router.put('/:id', (req, res) => {
-  User.update(req.id, {
+  Category.update(req.body, {
     where: {
       id: req.params.id
     }
   })
-  // update a category by its `id` value
+  .then(dbCategoryData => {
+    if (!dbCategoryData[0]) {
+      res.status(404).json({ message: 'No category found with this id' });
+      return;
+    }
+    res.json(dbCategoryData);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json(err);
+  });
 });
+  // update a category by its `id` value
 
 router.delete('/:id', (req, res) => {
   Category.destroy({
@@ -46,7 +80,19 @@ router.delete('/:id', (req, res) => {
       id: req.params.id
     }
   })
-  // delete a category by its `id` value
+  .then(dbCategoryData => {
+    if (!dbCategoryData) {
+      res.status(404).json({ message: 'No category found with this id' });
+      return;
+    }
+    res.json(dbCategoryData);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json(err);
+  });
 });
+  // delete a category by its `id` value
+
 
 module.exports = router;
